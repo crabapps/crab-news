@@ -22,3 +22,5 @@ sounds like a great project to both make and learn a lot from.
 - [Crux](https://redbadger.github.io/crux/)
 - [Ratatui](https://ratatui.rs)
 - [Iced](https://iced.rs)
+- [SwiftUI](https://developer.apple.com/xcode/swiftui/)
+- [Jetpack Compose](https://developer.android.com/compose)
