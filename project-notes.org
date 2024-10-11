@@ -5,17 +5,20 @@ sketchpad for this project. notes, they come and go.
 
 ** Elm-Crux Terms
 
-- just to help me wrap my head around it
+- to help wrap my head around it
 
-| Elm      | Crux                                      |
-|----------+-------------------------------------------|
-| Model    | Model                                     |
-| View     | ViewModel                                 |
-| Update   | impl crux_core::App for App { fn update } |
-| Messages | Events                                    |
-| "???"    | Capabilities                              |
-|          |                                           |
+| Elm              | Crux             |
+|------------------+------------------|
+| Model            | Model            |
+| View [1]         | ViewModel [2]    |
+| Update           | fn update im App |
+| Messages         | Events           |
+| Side Effects [3] | Capabilities     |
+|                  |                  |
 
+- [1] fn view in App modifies View
+- [2] ViewModel describes View
+- [3] is this like Ports?
 
 ** Model
 
