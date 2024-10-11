@@ -4,6 +4,9 @@ sketchpad for this project. notes, they come and go.
 
 
 ** Elm-Crux Terms
+
+- just to help me wrap my head around it
+
 | Elm      | Crux                                      |
 |----------+-------------------------------------------|
 | Model    | Model                                     |
@@ -15,7 +18,9 @@ sketchpad for this project. notes, they come and go.
 
 
 ** Model
-if this is like Elm Model, how do I imit?
+
+- if this is like Elm Model, how do I imit?
+
 #+BEGIN_SRC rust
 pub struct Model {
 }
@@ -23,7 +28,9 @@ pub struct Model {
 
 
 ** Account
-Do I need a crate here? Does Crux provide native integration?
+
+- Do I need a crate here? Does Crux provide native integration?
+
 *** Account
 #+BEGIN_SRC rust
 pub struct Account {
@@ -55,7 +62,9 @@ pub enum AccountAuth {
 
 
 ** Subscriptions
-crate: https://crates.io/crates/opml
+
+- crate: https://crates.io/crates/opml
+
 *** Example OPML
 #+begin_src xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
@@ -129,7 +138,9 @@ pub struct Outline {
 
 
 ** Feeds
-crate: https://crates.io/crates/feed-rs
+
+- crate: https://crates.io/crates/feed-rs
+
 *** Feed
 #+BEGIN_SRC rust
 pub struct Feed {
@@ -187,9 +198,11 @@ pub struct Content {
 
 
 ** DB Entries
-Almost all data eventually goes into the db. adding as I go.
-crate: https://crates.io/crates/surrealdb
-embed: https://surrealdb.com/docs/surrealdb/embedding/rust
+
+- Almost all data eventually goes into the db. adding as I go.
+- crate: https://crates.io/crates/surrealdb
+- embed: https://surrealdb.com/docs/surrealdb/embedding/rust
+
 *** EntryReadStatus
 #+BEGIN_SRC rust
 pub enum EntryReadStatus {
