@@ -32,10 +32,17 @@ sketchpad for this project. notes, they come and go.
 ** Model
 
 #+BEGIN_SRC rust
+#[derive(Default, Serialize)]
 pub struct Model {
-    browser: Browser,
-    open_method: OpeningMethod,
-    refresh_interval: RefreshInterval,
+    accounts: Vec<Account>,
+    subscriptions: Vec<Outline>,
+    feeds: Vec<Feed>,
+    feeds_refresh_interval: RefreshInterval,
+    feed_store: FeedStore,
+    entries: Vec<Entry>,
+    entry_open_method: OpeningMethod,
+    entry_use_browser: Browser,
+    content: Option<Content>,
 }
 #+END_SRC
 
@@ -47,10 +54,9 @@ pub struct Model {
 pub struct ViewModel {
     pub theme: Theme,
     pub text_size: TextSize,
+    pub feed_view: FeedView,
     pub entry_read: ReadStatus,
     pub entry_star: StarStatus,
-    pub feed_store: FeedStore,
-    pub feed_view: FeedView,
 }
 #+END_SRC
 
@@ -229,22 +235,18 @@ pub struct Content {
 #+end_src
 
 
-*** ReadStatus
+*** RefreshInterval
 #+BEGIN_SRC rust
-pub enum ReadStatus {
-    Read,
-    Unread,
+pub enum RefreshInterval {
+    MinFifteen,
+    MinThirthy,
+    HoursOne,
+    HoursTwo,
+    HoursFour,
+    HoursEight,
 }
 #+END_SRC
 
-
-*** StarStatus
-#+BEGIN_SRC rust
-pub enum StarStatus {
-    Starred,
-    Unstarred,
-}
-#+END_SRC
 
 
 *** Browser
@@ -270,6 +272,16 @@ pub enum OpeningMethod {
 #+end_src
 
 
+*** Theme
+#+BEGIN_SRC rust
+pub enum Theme {
+    System,
+    Light,
+    Dark,
+}
+#+END_SRC
+
+
 *** TextSize
 #+BEGIN_SRC rust
 pub enum TextSize {
@@ -278,16 +290,6 @@ pub enum TextSize {
     Large,
     XLarge,
     XXLarge,
-}
-#+END_SRC
-
-
-*** Theme
-#+BEGIN_SRC rust
-pub enum Theme {
-    System,
-    Light,
-    Dark,
 }
 #+END_SRC
 
@@ -313,18 +315,22 @@ pub enum FeedView {
 #+END_SRC
 
 
-*** RefreshInterval
+*** ReadStatus
 #+BEGIN_SRC rust
-pub enum RefreshInterval {
-    MinutesFifteen,
-    MinutesThirthy,
-    HoursOne,
-    HoursTwo,
-    HoursFour,
-    HoursEight,
+pub enum ReadStatus {
+    Read,
+    Unread,
 }
 #+END_SRC
 
+
+*** StarStatus
+#+BEGIN_SRC rust
+pub enum StarStatus {
+    Starred,
+    Unstarred,
+}
+#+END_SRC
 
 
 ** Database
