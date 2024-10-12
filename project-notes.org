@@ -3,38 +3,67 @@
 sketchpad for this project. notes, they come and go.
 
 
-** Elm-Crux Terms
+** Elm vs Crux Terms
 
 - to help wrap my head around it
 
-| Elm              | Crux             |
-|------------------+------------------|
-| Model            | Model            |
-| View [1]         | ViewModel [2]    |
-| Update           | fn update im App |
-| Messages         | Events           |
-| Side Effects [3] | Capabilities     |
-|                  |                  |
+| Elm           | Crux                   |
+|---------------+------------------------|
+| Model         | Model [1]              |
+| View [2]      | ViewModel [3]          |
+| Update        | fn update im App       |
+|---------------+------------------------|
+| Messages      | Events                 |
+| Side Effects  | Capabilities           |
+|---------------+------------------------|
+| init [1]      | "????????????????????" |
+| main          | is it App Trait Types? |
+| subscriptions | is it Capabilities?    |
+| ports         | is it Capabilities?    |
+| flags [4]     | is it unnecessary?     |
+|               |                        |
 
-- [1] fn view in App modifies View
-- [2] ViewModel describes View
-- [3] is this like Ports?
+- [1] if this is like Elm Model, how do I imit?
+- [2] fn view in App modifies ViewModel
+- [3] ViewModel describes View variables?
+- [4] initial values in Model already.
+
 
 ** Model
 
-- if this is like Elm Model, how do I imit?
-
 #+BEGIN_SRC rust
 pub struct Model {
+    browser: Browser,
+    open_method: OpeningMethod,
+    refresh_interval: RefreshInterval,
 }
 #+END_SRC
 
 
-** Account
+** ViewModel
 
-- Do I need a crate here? Does Crux provide native integration?
+#+BEGIN_SRC rust
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ViewModel {
+    pub theme: Theme,
+    pub text_size: TextSize,
+    pub entry_read: ReadStatus,
+    pub entry_star: StarStatus,
+    pub feed_store: FeedStore,
+    pub feed_view: FeedView,
+}
+#+END_SRC
+
+
+** Types
 
 *** Account
+
+- Do I need a crate here? Does Crux provide native integration?
+- Likely needing to code my own Capability for this one?
+- Probably best left for a future version?
+
+**** Account
 #+BEGIN_SRC rust
 pub struct Account {
     type: AccountType, // also unique ID
@@ -43,7 +72,7 @@ pub struct Account {
 }
 #+END_SRC
 
-*** AccountType
+**** AccountType
 #+BEGIN_SRC rust
 pub enum AccountType {
     Local,
@@ -55,7 +84,7 @@ pub enum AccountType {
 }
 #+END_SRC
 
-*** AccountAuth
+**** AccountAuth
 #+BEGIN_SRC rust
 pub enum AccountAuth {
     LoggedIn Token,
@@ -64,11 +93,11 @@ pub enum AccountAuth {
 #+END_SRC
 
 
-** Subscriptions
+*** Subscriptions
 
 - crate: https://crates.io/crates/opml
 
-*** Example OPML
+**** Example OPML
 #+begin_src xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <opml version="2.0">
@@ -83,8 +112,8 @@ pub enum AccountAuth {
 </opml>
 #+end_src
 
-*** Subscriptions
-**** OPML
+**** Subscriptions
+***** OPML
 #+BEGIN_SRC rust
 pub struct OPML {
     pub version: String,
@@ -93,7 +122,7 @@ pub struct OPML {
 }
 #+END_SRC
 
-**** Head
+***** Head
 #+BEGIN_SRC rust
 pub struct Head {
     pub title: Option<String>,
@@ -112,14 +141,14 @@ pub struct Head {
 }
 #+END_SRC
 
-**** Body
+***** Body
 #+BEGIN_SRC rust
 pub struct Body {
     pub outlines: Vec<Outline>,
 }
 #+END_SRC
 
-**** Outline
+***** Outline
 #+BEGIN_SRC rust
 pub struct Outline {
     pub text: String,
@@ -140,11 +169,11 @@ pub struct Outline {
 #+END_SRC
 
 
-** Feeds
+*** Feeds
 
 - crate: https://crates.io/crates/feed-rs
 
-*** Feed
+**** Feed
 #+BEGIN_SRC rust
 pub struct Feed {
     pub feed_type: FeedType,
@@ -168,7 +197,7 @@ pub struct Feed {
 }
 #+END_SRC
 
-*** Entry
+**** Entry
 #+BEGIN_SRC rust
 pub struct Entry {
     pub id: String,
@@ -189,7 +218,7 @@ pub struct Entry {
 }
 #+END_SRC
 
-*** Content
+**** Content
 #+begin_src rust
 pub struct Content {
     pub body: Option<String>,
@@ -200,29 +229,25 @@ pub struct Content {
 #+end_src
 
 
-** DB Entries
-
-- Almost all data eventually goes into the db. adding as I go.
-- crate: https://crates.io/crates/surrealdb
-- embed: https://surrealdb.com/docs/surrealdb/embedding/rust
-
-*** EntryReadStatus
+*** ReadStatus
 #+BEGIN_SRC rust
-pub enum EntryReadStatus {
+pub enum ReadStatus {
     Read,
     Unread,
 }
 #+END_SRC
 
-*** EntryStarStatus
+
+*** StarStatus
 #+BEGIN_SRC rust
-pub enum EntryStarStatus {
+pub enum StarStatus {
     Starred,
     Unstarred,
 }
 #+END_SRC
 
-*** EntryOpenInBrowser
+
+*** Browser
 #+BEGIN_SRC rust
 pub enum Browser {
     Default,
@@ -235,15 +260,17 @@ pub enum Browser {
 }
 #+END_SRC
 
-*** EntryOpeningMethod
+
+*** OpeningMethod
 #+BEGIN_SRC rust
-pub enum EntryOpeningMethod {
+pub enum OpeningMethod {
     Background,
     Foreground,
 }
 #+end_src
 
-*** UITextSize
+
+*** TextSize
 #+BEGIN_SRC rust
 pub enum TextSize {
     Small,
@@ -254,24 +281,37 @@ pub enum TextSize {
 }
 #+END_SRC
 
-*** UIFeedStore
+
+*** Theme
 #+BEGIN_SRC rust
-pub enum FeedStore {
-    File,
-    Directory,
+pub enum Theme {
+    System,
+    Light,
+    Dark,
 }
 #+END_SRC
 
-*** UIFeedView
+
+*** FeedStore
+#+BEGIN_SRC rust
+pub enum FeedStore {
+    Root,
+    Folder,
+}
+#+END_SRC
+
+
+*** FeedView
 #+BEGIN_SRC rust
 pub enum FeedView {
     Today,
     Unread,
     Starred,
-    Directory,
+    Folder,
     Feed,
 }
 #+END_SRC
+
 
 *** RefreshInterval
 #+BEGIN_SRC rust
@@ -286,8 +326,17 @@ pub enum RefreshInterval {
 #+END_SRC
 
 
+
+** Database
+
+- Almost all data eventually goes into the db. adding as I go.
+- crate: https://crates.io/crates/surrealdb
+- embed: https://surrealdb.com/docs/surrealdb/embedding/rust
+
+
 ** Events
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     // events from the shell
     SubsImport,
@@ -317,11 +366,3 @@ pub enum Event {
 #+end_src
 
 
-** UI Params
-*** Themes
-#+BEGIN_SRC rust
-pub enum Theme {
-    Default,
-    YadaYada,
-}
-#+END_SRC
