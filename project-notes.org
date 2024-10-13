@@ -34,8 +34,8 @@ sketchpad for this project. notes, they come and go.
 #+BEGIN_SRC rust
 #[derive(Default, Serialize)]
 pub struct Model {
-    import_export: Vec<Outline>,
     accounts: Vec<Account>,
+    subscriptions: Vec<Subscription>,
     feeds: Vec<Feed>,
     feeds_refresh_interval: RefreshInterval,
     feed_store: FeedStore,
@@ -101,10 +101,16 @@ pub enum AccountAuth {
 #+END_SRC
 
 
-*** OPML
+*** Subscriptions
 
+- import/export fn of OPML file
 - crate: https://crates.io/crates/opml
 
+**** Subscription
+#+begin_src rust
+struct Subscription {
+}
+#+end_src
 **** Example OPML
 #+begin_src xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
