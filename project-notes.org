@@ -34,12 +34,14 @@ sketchpad for this project. notes, they come and go.
 #+BEGIN_SRC rust
 #[derive(Default, Serialize)]
 pub struct Model {
+    import_export: Vec<Outline>,
     accounts: Vec<Account>,
-    subscriptions: Vec<Outline>,
     feeds: Vec<Feed>,
     feeds_refresh_interval: RefreshInterval,
     feed_store: FeedStore,
     entries: Vec<Entry>,
+    entry_read: ReadStatus,
+    entry_star: StarStatus,
     entry_open_method: OpeningMethod,
     entry_use_browser: Browser,
     content: Option<Content>,
@@ -99,7 +101,7 @@ pub enum AccountAuth {
 #+END_SRC
 
 
-*** Subscriptions
+*** OPML
 
 - crate: https://crates.io/crates/opml
 
@@ -118,7 +120,7 @@ pub enum AccountAuth {
 </opml>
 #+end_src
 
-**** Subscriptions
+**** OPML
 ***** OPML
 #+BEGIN_SRC rust
 pub struct OPML {
@@ -249,6 +251,15 @@ pub enum RefreshInterval {
 
 
 
+*** OpeningMethod
+#+BEGIN_SRC rust
+pub enum OpeningMethod {
+    Background,
+    Foreground,
+}
+#+end_src
+
+
 *** Browser
 #+BEGIN_SRC rust
 pub enum Browser {
@@ -261,15 +272,6 @@ pub enum Browser {
     Edge,
 }
 #+END_SRC
-
-
-*** OpeningMethod
-#+BEGIN_SRC rust
-pub enum OpeningMethod {
-    Background,
-    Foreground,
-}
-#+end_src
 
 
 *** Theme
