@@ -2,32 +2,23 @@
 
 sketchpad for this project. notes, they come and go.
 
-
 ** Elm vs Crux Terms
 
 - to help wrap my head around it
 
-| Elm           | Crux                   |
-|---------------+------------------------|
-| Model         | Model [1]              |
-| View [2]      | ViewModel [3]          |
-| Update        | fn update im App       |
-|---------------+------------------------|
-| Messages      | Events                 |
-| Side Effects  | Capabilities           |
-|---------------+------------------------|
-| init [1]      | "????????????????????" |
-| main          | is it App Trait Types? |
-| subscriptions | is it Capabilities?    |
-| ports         | is it Capabilities?    |
-| flags [4]     | is it unnecessary?     |
-|               |                        |
-
-- [1] if this is like Elm Model, how do I imit?
-- [2] fn view in App modifies ViewModel
-- [3] ViewModel describes View variables?
-- [4] initial values in Model already.
-
+| Elm           | Crux                | Notes/Qeestion                           |
+|---------------+---------------------+------------------------------------------|
+| Model         | Model               | how do I init?                           |
+| View          | fn view in App      | ViewModel describes View variables?      |
+| Update        | fn update in App    |                                          |
+| Messages      | Events              |                                          |
+| Side Effects  | Capabilities        |                                          |
+| init          |                     | is there need for imit?                  |
+| main          |                     | is it App Trait Types?                   |
+| subscriptions | is it Capabilities? | is there need to comm w/ shell for this? |
+| ports         | is it Capabilities? | is there need to comm w/ shell for this? |
+| flags         | is it unnecessary?  | initial values in Model already          |
+|               |                     |                                          |
 
 ** Model
 
@@ -48,7 +39,6 @@ pub struct Model {
 }
 #+END_SRC
 
-
 ** ViewModel
 
 #+BEGIN_SRC rust
@@ -61,7 +51,6 @@ pub struct ViewModel {
     pub entry_star: StarStatus,
 }
 #+END_SRC
-
 
 ** Types
 
@@ -340,13 +329,11 @@ pub enum StarStatus {
 }
 #+END_SRC
 
-
 ** Database
 
 - Almost all data eventually goes into the db. adding as I go.
 - crate: https://crates.io/crates/surrealdb
 - embed: https://surrealdb.com/docs/surrealdb/embedding/rust
-
 
 ** Events
 #+begin_src rust
