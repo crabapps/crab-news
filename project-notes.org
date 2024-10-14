@@ -28,6 +28,17 @@ sketchpad for this project. notes, they come and go.
 :PROPERTIES:
 :CUSTOM_ID: model
 :END:
+1. The Model holds the state of a Crux app.
+2. The Model itself lives inside the shared/app.rs library (the Rust
+   App)
+3. The Shell initiates (runs) the Model (think of Model as a program
+   running inside the native app)
+4. The Shell (the native app, the UI) cannot access the Model directly
+   (it is inside another "program")
+5. So, the Shell sends and receives its data via the FFI a. FFI is a
+   contract between the Rust side and the native side b. FFI allowes the
+   native app to call Rust functions and vice-versa
+
 #+begin_src rust
 #[derive(Default, Serialize)]
 pub struct Model {
@@ -49,6 +60,11 @@ pub struct Model {
 :PROPERTIES:
 :CUSTOM_ID: viewmodel
 :END:
+1. The ViewModel in the Crux app holds the data
+2. The Crux app will send the data to the Shell every time you call
+   render()
+3. it gets populated by the view() function.
+
 #+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
@@ -72,37 +88,37 @@ pub struct ViewModel {
 - Likely needing to code my own Capability for this one?
 - Probably best left for a future version?
 
-1. Account
+**** Account
 
-   #+begin_src rust
-   pub struct Account {
-       type: AccountType, // also unique ID
-       name: AccountName,
-       feeds: Vec<Feed>,
-   }
-   #+end_src
+  #+begin_src rust
+  pub struct Account {
+      type: AccountType, // also unique ID
+      name: AccountName,
+      feeds: Vec<Feed>,
+  }
+  #+end_src
 
-2. AccountType
+**** AccountType
 
-   #+begin_src rust
-   pub enum AccountType {
-       Local,
-       Apple,
-       Google,
-       Microsoft,
-       Canonical,
-       Dropbox,
-   }
-   #+end_src
+  #+begin_src rust
+  pub enum AccountType {
+      Local,
+      Apple,
+      Google,
+      Microsoft,
+      Canonical,
+      Dropbox,
+  }
+  #+end_src
 
-3. AccountAuth
+**** AccountAuth
 
-   #+begin_src rust
-   pub enum AccountAuth {
-       LoggedIn Token,
-       LoggedOut,
-   }
-   #+end_src
+  #+begin_src rust
+  pub enum AccountAuth {
+      LoggedIn Token,
+      LoggedOut,
+  }
+  #+end_src
 
 *** Subscriptions
 :PROPERTIES:
@@ -111,95 +127,95 @@ pub struct ViewModel {
 - import/export fn of OPML file
 - crate: [[https://crates.io/crates/opml]]
 
-1. Subscription
+**** Subscription
 
-   #+begin_src rust
-   pub struct Subscription {
-       pub id: String,
-       pub feed_type: FeedType,
-       pub title: Option<Text>,
-       pub text: Option<Text>,
-       pub description: Option<Text>,
-       pub links: Vec<Link>,
-   }
-   #+end_src
+  #+begin_src rust
+  pub struct Subscription {
+      pub id: String,
+      pub feed_type: FeedType,
+      pub title: Option<Text>,
+      pub text: Option<Text>,
+      pub description: Option<Text>,
+      pub links: Vec<Link>,
+  }
+  #+end_src
 
-2. Example OPML
+**** Example OPML
 
-   #+begin_src xml
-   <?xml version="1.0" encoding="ISO-8859-1"?>
-   <opml version="2.0">
-     <head>
-       <title>mySubscriptions.opml</title>
-       <dateCreated>Sat, 18 Jun 2005 12:11:52 GMT</dateCreated>
-       <ownerName>Crab News</ownerName>
-     </head>
-     <body>
-        <outline text="Gentle Wash Records" title="Gentle Wash Records" description="" type="rss" version="RSS" htmlUrl="https://gentlewashrecords.com/" xmlUrl="https://gentlewashrecords.com/atom.xml"/>
-     </body>
-   </opml>
-   #+end_src
+  #+begin_src xml
+  <?xml version="1.0" encoding="ISO-8859-1"?>
+  <opml version="2.0">
+    <head>
+      <title>mySubscriptions.opml</title>
+      <dateCreated>Sat, 18 Jun 2005 12:11:52 GMT</dateCreated>
+      <ownerName>Crab News</ownerName>
+    </head>
+    <body>
+       <outline text="Gentle Wash Records" title="Gentle Wash Records" description="" type="rss" version="RSS" htmlUrl="https://gentlewashrecords.com/" xmlUrl="https://gentlewashrecords.com/atom.xml"/>
+    </body>
+  </opml>
+  #+end_src
 
-3. OPML
+- OPML
 
-   1. OPML
+  1. OPML
 
-      #+begin_src rust
-      pub struct OPML {
-          pub version: String,
-          pub head: Option<Head>,
-          pub body: Body,
-      }
-      #+end_src
+     #+begin_src rust
+     pub struct OPML {
+         pub version: String,
+         pub head: Option<Head>,
+         pub body: Body,
+     }
+     #+end_src
 
-   2. Head
+  2. Head
 
-      #+begin_src rust
-      pub struct Head {
-          pub title: Option<String>,
-          pub date_created: Option<String>,
-          pub date_modified: Option<String>,
-          pub owner_name: Option<String>,
-          pub owner_email: Option<String>,
-          pub owner_id: Option<String>,
-          pub docs: Option<String>,
-          pub expansion_state: Option<String>,
-          pub vert_scroll_state: Option<i32>,
-          pub window_top: Option<i32>,
-          pub window_left: Option<i32>,
-          pub window_bottom: Option<i32>,
-          pub window_right: Option<i32>,
-      }
-      #+end_src
+     #+begin_src rust
+     pub struct Head {
+         pub title: Option<String>,
+         pub date_created: Option<String>,
+         pub date_modified: Option<String>,
+         pub owner_name: Option<String>,
+         pub owner_email: Option<String>,
+         pub owner_id: Option<String>,
+         pub docs: Option<String>,
+         pub expansion_state: Option<String>,
+         pub vert_scroll_state: Option<i32>,
+         pub window_top: Option<i32>,
+         pub window_left: Option<i32>,
+         pub window_bottom: Option<i32>,
+         pub window_right: Option<i32>,
+     }
+     #+end_src
 
-   3. Body
+  3. Body
 
-      #+begin_src rust
-      pub struct Body {
-          pub outlines: Vec<Outline>,
-      }
-      #+end_src
+     #+begin_src rust
+     pub struct Body {
+         pub outlines: Vec<Outline>,
+     }
+     #+end_src
 
-   4. Outline
+  4. Outline
 
-      #+begin_src rust
-      pub struct Outline {
-          pub text: String,
-          pub type: Option<String>,
-          pub is_comment: Option<bool>,
-          pub is_breakpoint: Option<bool>,
-          pub created: Option<String>,
-          pub category: Option<String>,
-          pub outlines: Vec<Outline>,
-          pub xml_url: Option<String>,
-          pub description: Option<String>,
-          pub html_url: Option<String>,
-          pub language: Option<String>,
-          pub title: Option<String>,
-          pub version: Option<String>,
-          pub url: Option<String>,
-      }
-      #+end_src
+     #+begin_src rust
+     pub struct Outline {
+         pub text: String,
+         pub type: Option<String>,
+         pub is_comment: Option<bool>,
+         pub is_breakpoint: Option<bool>,
+         pub created: Option<String>,
+         pub category: Option<String>,
+         pub outlines: Vec<Outline>,
+         pub xml_url: Option<String>,
+         pub description: Option<String>,
+         pub html_url: Option<String>,
+         pub language: Option<String>,
+         pub title: Option<String>,
+         pub version: Option<String>,
+         pub url: Option<String>,
+     }
+     #+end_src
 
 *** Feeds
 :PROPERTIES:
@@ -207,63 +223,63 @@ pub struct ViewModel {
 :END:
 - crate: [[https://crates.io/crates/feed-rs]]
 
-1. Feed
+**** Feed
 
-   #+begin_src rust
-   pub struct Feed {
-       pub feed_type: FeedType,
-       pub id: String,
-       pub title: Option<Text>,
-       pub updated: Option<DateTime<Utc>>,
-       pub authors: Vec<Person>,
-       pub description: Option<Text>,
-       pub links: Vec<Link>,
-       pub categories: Vec<Category>,
-       pub contributors: Vec<Person>,
-       pub generator: Option<Generator>,
-       pub icon: Option<Image>,
-       pub language: Option<String>,
-       pub logo: Option<Image>,
-       pub published: Option<DateTime<Utc>>,
-       pub rating: Option<MediaRating>,
-       pub rights: Option<Text>,
-       pub ttl: Option<u32>,
-       pub entries: Vec<Entry>,
-   }
-   #+end_src
+  #+begin_src rust
+  pub struct Feed {
+      pub feed_type: FeedType,
+      pub id: String,
+      pub title: Option<Text>,
+      pub updated: Option<DateTime<Utc>>,
+      pub authors: Vec<Person>,
+      pub description: Option<Text>,
+      pub links: Vec<Link>,
+      pub categories: Vec<Category>,
+      pub contributors: Vec<Person>,
+      pub generator: Option<Generator>,
+      pub icon: Option<Image>,
+      pub language: Option<String>,
+      pub logo: Option<Image>,
+      pub published: Option<DateTime<Utc>>,
+      pub rating: Option<MediaRating>,
+      pub rights: Option<Text>,
+      pub ttl: Option<u32>,
+      pub entries: Vec<Entry>,
+  }
+  #+end_src
 
-2. Entry
+**** Entry
 
-   #+begin_src rust
-   pub struct Entry {
-       pub id: String,
-       pub title: Option<Text>,
-       pub updated: Option<DateTime<Utc>>,
-       pub authors: Vec<Person>,
-       pub content: Option<Content>,
-       pub links: Vec<Link>,
-       pub summary: Option<Text>,
-       pub categories: Vec<Category>,
-       pub contributors: Vec<Person>,
-       pub published: Option<DateTime<Utc>>,
-       pub source: Option<String>,
-       pub rights: Option<Text>,
-       pub media: Vec<MediaObject>,
-       pub language: Option<String>,
-       pub base: Option<String>,
-   }
-   #+end_src
+  #+begin_src rust
+  pub struct Entry {
+      pub id: String,
+      pub title: Option<Text>,
+      pub updated: Option<DateTime<Utc>>,
+      pub authors: Vec<Person>,
+      pub content: Option<Content>,
+      pub links: Vec<Link>,
+      pub summary: Option<Text>,
+      pub categories: Vec<Category>,
+      pub contributors: Vec<Person>,
+      pub published: Option<DateTime<Utc>>,
+      pub source: Option<String>,
+      pub rights: Option<Text>,
+      pub media: Vec<MediaObject>,
+      pub language: Option<String>,
+      pub base: Option<String>,
+  }
+  #+end_src
 
-3. Content
+**** Content
 
-   #+begin_src rust
-   pub struct Content {
-       pub body: Option<String>,
-       pub content_type: MediaTypeBuf,
-       pub length: Option<u64>,
-       pub src: Option<Link>,
-   }
-   #+end_src
+  #+begin_src rust
+  pub struct Content {
+      pub body: Option<String>,
+      pub content_type: MediaTypeBuf,
+      pub length: Option<u64>,
+      pub src: Option<Link>,
+  }
+  #+end_src
 
 *** RefreshInterval
 :PROPERTIES:
