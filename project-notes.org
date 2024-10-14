@@ -1,9 +1,13 @@
 * Crab News
-
+:PROPERTIES:
+:CUSTOM_ID: crab-news
+:END:
 sketchpad for this project. notes, they come and go.
 
 ** Elm vs Crux Terms
-
+:PROPERTIES:
+:CUSTOM_ID: elm-vs-crux-terms
+:END:
 - to help wrap my head around it
 
 | Elm           | Crux                | Notes/Qeestion                           |
@@ -13,16 +17,18 @@ sketchpad for this project. notes, they come and go.
 | Update        | fn update in App    |                                          |
 | Messages      | Events              |                                          |
 | Side Effects  | Capabilities        |                                          |
-| init          |                     | is there need for imit?                  |
-| main          |                     | is it App Trait Types?                   |
+| init          |                     | is there need for init?                  |
+| main          |                     | is it App trait types?                   |
 | subscriptions | is it Capabilities? | is there need to comm w/ shell for this? |
 | ports         | is it Capabilities? | is there need to comm w/ shell for this? |
 | flags         | is it unnecessary?  | initial values in Model already          |
 |               |                     |                                          |
 
 ** Model
-
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: model
+:END:
+#+begin_src rust
 #[derive(Default, Serialize)]
 pub struct Model {
     accounts: Vec<Account>,
@@ -37,11 +43,13 @@ pub struct Model {
     entry_use_browser: Browser,
     content: Option<Content>,
 }
-#+END_SRC
+#+end_src
 
 ** ViewModel
-
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: viewmodel
+:END:
+#+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
     pub theme: Theme,
@@ -50,190 +58,218 @@ pub struct ViewModel {
     pub entry_read: ReadStatus,
     pub entry_star: StarStatus,
 }
-#+END_SRC
+#+end_src
 
 ** Types
-
+:PROPERTIES:
+:CUSTOM_ID: types
+:END:
 *** Account
-
+:PROPERTIES:
+:CUSTOM_ID: account
+:END:
 - Do I need a crate here? Does Crux provide native integration?
 - Likely needing to code my own Capability for this one?
 - Probably best left for a future version?
 
-**** Account
-#+BEGIN_SRC rust
-pub struct Account {
-    type: AccountType, // also unique ID
-    name: AccountName,
-    feeds: Vec<Feed>,
-}
-#+END_SRC
+1. Account
 
-**** AccountType
-#+BEGIN_SRC rust
-pub enum AccountType {
-    Local,
-    Apple,
-    Google,
-    Microsoft,
-    Canonical,
-    Dropbox,
-}
-#+END_SRC
+   #+begin_src rust
+   pub struct Account {
+       type: AccountType, // also unique ID
+       name: AccountName,
+       feeds: Vec<Feed>,
+   }
+   #+end_src
 
-**** AccountAuth
-#+BEGIN_SRC rust
-pub enum AccountAuth {
-    LoggedIn Token,
-    LoggedOut,
-}
-#+END_SRC
+2. AccountType
 
+   #+begin_src rust
+   pub enum AccountType {
+       Local,
+       Apple,
+       Google,
+       Microsoft,
+       Canonical,
+       Dropbox,
+   }
+   #+end_src
+
+3. AccountAuth
+
+   #+begin_src rust
+   pub enum AccountAuth {
+       LoggedIn Token,
+       LoggedOut,
+   }
+   #+end_src
 
 *** Subscriptions
-
+:PROPERTIES:
+:CUSTOM_ID: subscriptions
+:END:
 - import/export fn of OPML file
-- crate: https://crates.io/crates/opml
+- crate: [[https://crates.io/crates/opml]]
 
-**** Subscription
-#+begin_src rust
-struct Subscription {
-}
-#+end_src
-**** Example OPML
-#+begin_src xml
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<opml version="2.0">
-  <head>
-    <title>mySubscriptions.opml</title>
-    <dateCreated>Sat, 18 Jun 2005 12:11:52 GMT</dateCreated>
-    <ownerName>Crab News</ownerName>
-  </head>
-  <body>
-     <outline text="Gentle Wash Records" title="Gentle Wash Records" description="" type="rss" version="RSS" htmlUrl="https://gentlewashrecords.com/" xmlUrl="https://gentlewashrecords.com/atom.xml"/>
-  </body>
-</opml>
-#+end_src
+1. Subscription
 
-**** OPML
-***** OPML
-#+BEGIN_SRC rust
-pub struct OPML {
-    pub version: String,
-    pub head: Option<Head>,
-    pub body: Body,
-}
-#+END_SRC
+   #+begin_src rust
+   pub struct Subscription {
+       pub id: String,
+       pub feed_type: FeedType,
+       pub title: Option<Text>,
+       pub text: Option<Text>,
+       pub description: Option<Text>,
+       pub links: Vec<Link>,
+   }
+   #+end_src
 
-***** Head
-#+BEGIN_SRC rust
-pub struct Head {
-    pub title: Option<String>,
-    pub date_created: Option<String>,
-    pub date_modified: Option<String>,
-    pub owner_name: Option<String>,
-    pub owner_email: Option<String>,
-    pub owner_id: Option<String>,
-    pub docs: Option<String>,
-    pub expansion_state: Option<String>,
-    pub vert_scroll_state: Option<i32>,
-    pub window_top: Option<i32>,
-    pub window_left: Option<i32>,
-    pub window_bottom: Option<i32>,
-    pub window_right: Option<i32>,
-}
-#+END_SRC
+2. Example OPML
 
-***** Body
-#+BEGIN_SRC rust
-pub struct Body {
-    pub outlines: Vec<Outline>,
-}
-#+END_SRC
+   #+begin_src xml
+   <?xml version="1.0" encoding="ISO-8859-1"?>
+   <opml version="2.0">
+     <head>
+       <title>mySubscriptions.opml</title>
+       <dateCreated>Sat, 18 Jun 2005 12:11:52 GMT</dateCreated>
+       <ownerName>Crab News</ownerName>
+     </head>
+     <body>
+        <outline text="Gentle Wash Records" title="Gentle Wash Records" description="" type="rss" version="RSS" htmlUrl="https://gentlewashrecords.com/" xmlUrl="https://gentlewashrecords.com/atom.xml"/>
+     </body>
+   </opml>
+   #+end_src
 
-***** Outline
-#+BEGIN_SRC rust
-pub struct Outline {
-    pub text: String,
-    pub type: Option<String>,
-    pub is_comment: Option<bool>,
-    pub is_breakpoint: Option<bool>,
-    pub created: Option<String>,
-    pub category: Option<String>,
-    pub outlines: Vec<Outline>,
-    pub xml_url: Option<String>,
-    pub description: Option<String>,
-    pub html_url: Option<String>,
-    pub language: Option<String>,
-    pub title: Option<String>,
-    pub version: Option<String>,
-    pub url: Option<String>,
-}
-#+END_SRC
+3. OPML
 
+   1. OPML
+
+      #+begin_src rust
+      pub struct OPML {
+          pub version: String,
+          pub head: Option<Head>,
+          pub body: Body,
+      }
+      #+end_src
+
+   2. Head
+
+      #+begin_src rust
+      pub struct Head {
+          pub title: Option<String>,
+          pub date_created: Option<String>,
+          pub date_modified: Option<String>,
+          pub owner_name: Option<String>,
+          pub owner_email: Option<String>,
+          pub owner_id: Option<String>,
+          pub docs: Option<String>,
+          pub expansion_state: Option<String>,
+          pub vert_scroll_state: Option<i32>,
+          pub window_top: Option<i32>,
+          pub window_left: Option<i32>,
+          pub window_bottom: Option<i32>,
+          pub window_right: Option<i32>,
+      }
+      #+end_src
+
+   3. Body
+
+      #+begin_src rust
+      pub struct Body {
+          pub outlines: Vec<Outline>,
+      }
+      #+end_src
+
+   4. Outline
+
+      #+begin_src rust
+      pub struct Outline {
+          pub text: String,
+          pub type: Option<String>,
+          pub is_comment: Option<bool>,
+          pub is_breakpoint: Option<bool>,
+          pub created: Option<String>,
+          pub category: Option<String>,
+          pub outlines: Vec<Outline>,
+          pub xml_url: Option<String>,
+          pub description: Option<String>,
+          pub html_url: Option<String>,
+          pub language: Option<String>,
+          pub title: Option<String>,
+          pub version: Option<String>,
+          pub url: Option<String>,
+      }
+      #+end_src
 
 *** Feeds
+:PROPERTIES:
+:CUSTOM_ID: feeds
+:END:
+- crate: [[https://crates.io/crates/feed-rs]]
 
-- crate: https://crates.io/crates/feed-rs
+1. Feed
 
-**** Feed
-#+BEGIN_SRC rust
-pub struct Feed {
-    pub feed_type: FeedType,
-    pub id: String,
-    pub title: Option<Text>,
-    pub updated: Option<DateTime<Utc>>,
-    pub authors: Vec<Person>,
-    pub description: Option<Text>,
-    pub links: Vec<Link>,
-    pub categories: Vec<Category>,
-    pub contributors: Vec<Person>,
-    pub generator: Option<Generator>,
-    pub icon: Option<Image>,
-    pub language: Option<String>,
-    pub logo: Option<Image>,
-    pub published: Option<DateTime<Utc>>,
-    pub rating: Option<MediaRating>,
-    pub rights: Option<Text>,
-    pub ttl: Option<u32>,
-    pub entries: Vec<Entry>,
-}
-#+END_SRC
+   #+begin_src rust
+   pub struct Feed {
+       pub feed_type: FeedType,
+       pub id: String,
+       pub title: Option<Text>,
+       pub updated: Option<DateTime<Utc>>,
+       pub authors: Vec<Person>,
+       pub description: Option<Text>,
+       pub links: Vec<Link>,
+       pub categories: Vec<Category>,
+       pub contributors: Vec<Person>,
+       pub generator: Option<Generator>,
+       pub icon: Option<Image>,
+       pub language: Option<String>,
+       pub logo: Option<Image>,
+       pub published: Option<DateTime<Utc>>,
+       pub rating: Option<MediaRating>,
+       pub rights: Option<Text>,
+       pub ttl: Option<u32>,
+       pub entries: Vec<Entry>,
+   }
+   #+end_src
 
-**** Entry
-#+BEGIN_SRC rust
-pub struct Entry {
-    pub id: String,
-    pub title: Option<Text>,
-    pub updated: Option<DateTime<Utc>>,
-    pub authors: Vec<Person>,
-    pub content: Option<Content>,
-    pub links: Vec<Link>,
-    pub summary: Option<Text>,
-    pub categories: Vec<Category>,
-    pub contributors: Vec<Person>,
-    pub published: Option<DateTime<Utc>>,
-    pub source: Option<String>,
-    pub rights: Option<Text>,
-    pub media: Vec<MediaObject>,
-    pub language: Option<String>,
-    pub base: Option<String>,
-}
-#+END_SRC
+2. Entry
 
-**** Content
-#+begin_src rust
-pub struct Content {
-    pub body: Option<String>,
-    pub content_type: MediaTypeBuf,
-    pub length: Option<u64>,
-    pub src: Option<Link>,
-}
-#+end_src
+   #+begin_src rust
+   pub struct Entry {
+       pub id: String,
+       pub title: Option<Text>,
+       pub updated: Option<DateTime<Utc>>,
+       pub authors: Vec<Person>,
+       pub content: Option<Content>,
+       pub links: Vec<Link>,
+       pub summary: Option<Text>,
+       pub categories: Vec<Category>,
+       pub contributors: Vec<Person>,
+       pub published: Option<DateTime<Utc>>,
+       pub source: Option<String>,
+       pub rights: Option<Text>,
+       pub media: Vec<MediaObject>,
+       pub language: Option<String>,
+       pub base: Option<String>,
+   }
+   #+end_src
 
+3. Content
+
+   #+begin_src rust
+   pub struct Content {
+       pub body: Option<String>,
+       pub content_type: MediaTypeBuf,
+       pub length: Option<u64>,
+       pub src: Option<Link>,
+   }
+   #+end_src
 
 *** RefreshInterval
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: refreshinterval
+:END:
+#+begin_src rust
 pub enum RefreshInterval {
     MinFifteen,
     MinThirthy,
@@ -242,21 +278,24 @@ pub enum RefreshInterval {
     HoursFour,
     HoursEight,
 }
-#+END_SRC
-
-
+#+end_src
 
 *** OpeningMethod
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: openingmethod
+:END:
+#+begin_src rust
 pub enum OpeningMethod {
     Background,
     Foreground,
 }
 #+end_src
 
-
 *** Browser
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: browser
+:END:
+#+begin_src rust
 pub enum Browser {
     Default,
     Safari,
@@ -266,21 +305,25 @@ pub enum Browser {
     Opera,
     Edge,
 }
-#+END_SRC
-
+#+end_src
 
 *** Theme
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: theme
+:END:
+#+begin_src rust
 pub enum Theme {
     System,
     Light,
     Dark,
 }
-#+END_SRC
-
+#+end_src
 
 *** TextSize
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: textsize
+:END:
+#+begin_src rust
 pub enum TextSize {
     Small,
     Medium,
@@ -288,20 +331,24 @@ pub enum TextSize {
     XLarge,
     XXLarge,
 }
-#+END_SRC
-
+#+end_src
 
 *** FeedStore
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: feedstore
+:END:
+#+begin_src rust
 pub enum FeedStore {
     Root,
     Folder,
 }
-#+END_SRC
-
+#+end_src
 
 *** FeedView
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: feedview
+:END:
+#+begin_src rust
 pub enum FeedView {
     Today,
     Unread,
@@ -309,33 +356,42 @@ pub enum FeedView {
     Folder,
     Feed,
 }
-#+END_SRC
-
+#+end_src
 
 *** ReadStatus
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: readstatus
+:END:
+#+begin_src rust
 pub enum ReadStatus {
     Read,
     Unread,
 }
-#+END_SRC
-
+#+end_src
 
 *** StarStatus
-#+BEGIN_SRC rust
+:PROPERTIES:
+:CUSTOM_ID: starstatus
+:END:
+#+begin_src rust
 pub enum StarStatus {
     Starred,
     Unstarred,
 }
-#+END_SRC
+#+end_src
 
 ** Database
-
+:PROPERTIES:
+:CUSTOM_ID: database
+:END:
 - Almost all data eventually goes into the db. adding as I go.
-- crate: https://crates.io/crates/surrealdb
-- embed: https://surrealdb.com/docs/surrealdb/embedding/rust
+- crate: [[https://crates.io/crates/surrealdb]]
+- embed: [[https://surrealdb.com/docs/surrealdb/embedding/rust]]
 
 ** Events
+:PROPERTIES:
+:CUSTOM_ID: events
+:END:
 #+begin_src rust
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
@@ -365,5 +421,3 @@ pub enum Event {
     ...
 }
 #+end_src
-
-
