@@ -12,20 +12,20 @@ sketchpad for this project. notes, they come and go.
 
 | Elm          | Crux                          | Notes                                                                         |
 |--------------+-------------------------------+-------------------------------------------------------------------------------|
-| Model        | Model                         | The Model holds the state of a Crux app                                       |
-| a) View      | ViewModel                     | the ViewModel contains data relevant to what the user currently sees          |
-| b) View      | fn view in App                | the view() function populates ViewModel's data                                |
-| c) View      | no Model -> Html Msg here     | the Shells will use the data from ViewModel                                   |
+| Model        | Model                         | the Model holds all the possible states the app can be in                     |
+| a) View      | ViewModel                     | the ViewModel contains data relevant to what the user sees *right now*        |
+| b) View      | fn view in App                | the view() function populates ViewModel's data fron the Modul                 |
+| c) View      | no Model -> Html Msg here     | the Shells will send/receive the data to/from ViewModel via Capabilities      |
 | Update       | fn update in App              | (&self, msg: Self::Event, model: &mut Self::Model, caps: &Self::Capabilities) |
-| Msg          | Events                        | can Events accept 'parameters' ?                                              |
+| Msg          | Events (accepts params?)      | an Event is all the possible things the user can do                           |
 | (Model, Msg) | fn update implicit return of? | self.update(Event::Update(count), model, caps);                               |
 | main         | crux_core::App entry point    | is an implementation of the App trait, exposed via the Core or Bridge         |
-| a) init      | #[derive(Default)]            | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Dewault for any custom Types |
-| b) init      | no explicit Cmd               | no request effects during init. You can always add Event::Init if  needed     |
+| a) init      | ​#[derive(Default)]           | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Dewault for any custom Types |
+| b) init      | no explicit Cmd               | no request effects during init. You can always add Event::Init if needed      |
 
------
+--------------
 
-| Side Effects    | Capabilities     | Notes                                                                                   |
+| Side Effects    | Capabilities/FFI | Notes                                                                                   |
 |-----------------+------------------+-----------------------------------------------------------------------------------------|
 | a) Side Effects | Capabilities     | Crux has three types of effects: notifications, requests, and subscriptions             |
 | b) Side Effects | Capabilities     | Crux side effects differ by the number of expected responses from the Shell             |
@@ -39,19 +39,27 @@ sketchpad for this project. notes, they come and go.
 :PROPERTIES:
 :CUSTOM_ID: model
 :END:
+The Model is an overall state (and the only place for state) of your
+application, it will hold all the loaded data, and any other kind of in-memory
+cached things. Everything that needs to live for longer than single run of
+`update` goes in the Model.
+
 #+begin_src rust
 #[derive(Default, Serialize)]
 pub struct Model {
-    accounts: Vec<Account>,
+    theme: Theme,
+    text_size: TextSize,
+    accounts: Vec<Account>, // this should use the variant
     subscriptions: Vec<Subscription>,
+    refresh_interval: RefreshInterval,
+    open_method: OpeningMethod,
+    use_browser: Browser,
     feeds: Vec<Feed>,
-    feeds_refresh_interval: RefreshInterval,
     feed_store: FeedStore,
+    feed_view: FeedView,
     entries: Vec<Entry>,
     entry_read: ReadStatus,
     entry_star: StarStatus,
-    entry_open_method: OpeningMethod,
-    entry_use_browser: Browser,
     content: Option<Content>,
 }
 #+end_src
@@ -60,14 +68,12 @@ pub struct Model {
 :PROPERTIES:
 :CUSTOM_ID: viewmodel
 :END:
+the ViewModel is a straight "projection" of the Model -- it's calculated from it
+  (with the view function)
+
 #+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
-    pub theme: Theme,
-    pub text_size: TextSize,
-    pub feed_view: FeedView,
-    pub entry_read: ReadStatus,
-    pub entry_star: StarStatus,
 }
 #+end_src
 
@@ -75,6 +81,36 @@ pub struct ViewModel {
 :PROPERTIES:
 :CUSTOM_ID: types
 :END:
+*** Theme
+:PROPERTIES:
+:CUSTOM_ID: theme
+:END:
+#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub enum Theme {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+#+end_src
+
+*** TextSize
+:PROPERTIES:
+:CUSTOM_ID: textsize
+:END:
+#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub enum TextSize {
+    Small,
+    #[default]
+    Medium,
+    Large,
+    XLarge,
+    XXLarge,
+}
+#+end_src
+
 *** Account
 :PROPERTIES:
 :CUSTOM_ID: account
@@ -83,35 +119,26 @@ pub struct ViewModel {
 - Likely needing to code my own Capability for this one?
 - Probably best left for a future version?
 
-@1 Account
-
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Account {
     type: AccountType, // also unique ID
-    name: AccountName,
-    feeds: Vec<Feed>,
+    subscriptions: Vec<Subscription>, // does it belong here instead?
 }
-#+end_src
 
-@2 AccountType
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum AccountType {
-    Local,
-    Apple,
-    Google,
-    Microsoft,
-    Canonical,
-    Dropbox,
-}
-#+end_src
-
-@3 AccountAuth
-
-#+begin_src rust
-pub enum AccountAuth {
-    LoggedIn Token,
-    LoggedOut,
+    // the variant is for the Model
+    // the string is for ViewModel -> Shells -> UI account name display (and database?)
+    // how do I check for variants Auth state in one go? impl? Capabilities?
+    #[default]
+    Local(None) = "Local",
+    Apple(Option<Token>) = "iCloud",
+    Google(Option<Token>) = "Google",
+    Microsoft(Option<Token>) = "Nicrosoft",
+    Canonical(Option<Token>) = "Ubuntu One",
+    Dropbox(Option<Token>) = "Dropbox",
+    // possibly more
 }
 #+end_src
 
@@ -125,6 +152,8 @@ pub enum AccountAuth {
 @1 Subscription
 
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+// this should hold all OPML data for import/export, parse and read/write needed types from/to Feed
 pub struct Subscription {
     pub id: String,
     pub feed_type: FeedType,
@@ -153,19 +182,15 @@ pub struct Subscription {
 
 @3 OPML
 
-@1 OPML
-
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct OPML {
     pub version: String,
     pub head: Option<Head>,
     pub body: Body,
 }
-#+end_src
 
-@2 Head
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Head {
     pub title: Option<String>,
     pub date_created: Option<String>,
@@ -181,19 +206,13 @@ pub struct Head {
     pub window_bottom: Option<i32>,
     pub window_right: Option<i32>,
 }
-#+end_src
 
-@3 Body
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Body {
     pub outlines: Vec<Outline>,
 }
-#+end_src
 
-@4 Outline
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Outline {
     pub text: String,
     pub type: Option<String>,
@@ -212,15 +231,62 @@ pub struct Outline {
 }
 #+end_src
 
+*** RefreshInterval
+:PROPERTIES:
+:CUSTOM_ID: refreshinterval
+:END:
+#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub enum RefreshInterval {
+    MinFifteen = {name: "15 minutes", time: 15},
+    #[default]
+    MinThirthy = {name: "30 minutes", time: 30},
+    HoursOne = {name: "1 hour", time: 60},
+    HoursTwo = {name: "2 hours", time: 120},
+    HoursFour = {name: "4 hours", time: 240},
+    HoursEight = {name: "8 hours", time: 480},
+}
+#+end_src
+
+*** OpeningMethod
+:PROPERTIES:
+:CUSTOM_ID: openingmethod
+:END:
+#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub enum OpeningMethod {
+    #[default]
+    Background,
+    Foreground,
+}
+#+end_src
+
+*** Browser
+:PROPERTIES:
+:CUSTOM_ID: browser
+:END:
+#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub enum Browser {
+    #[default]
+    Default,
+    Safari,
+    Firefox,
+    Brave,
+    Chrome,
+    Opera,
+    Edge,
+}
+#+end_src
+
 *** Feeds
 :PROPERTIES:
 :CUSTOM_ID: feeds
 :END:
 - crate: [[https://crates.io/crates/feed-rs]]
 
-@1 Feed
-
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Feed {
     pub feed_type: FeedType,
     pub id: String,
@@ -241,11 +307,8 @@ pub struct Feed {
     pub ttl: Option<u32>,
     pub entries: Vec<Entry>,
 }
-#+end_src
 
-@2 Entry
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Entry {
     pub id: String,
     pub title: Option<Text>,
@@ -263,11 +326,8 @@ pub struct Entry {
     pub language: Option<String>,
     pub base: Option<String>,
 }
-#+end_src
 
-@3 Content
-
-#+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Content {
     pub body: Option<String>,
     pub content_type: MediaTypeBuf,
@@ -276,80 +336,14 @@ pub struct Content {
 }
 #+end_src
 
-*** RefreshInterval
-:PROPERTIES:
-:CUSTOM_ID: refreshinterval
-:END:
-#+begin_src rust
-pub enum RefreshInterval {
-    MinFifteen,
-    MinThirthy,
-    HoursOne,
-    HoursTwo,
-    HoursFour,
-    HoursEight,
-}
-#+end_src
-
-*** OpeningMethod
-:PROPERTIES:
-:CUSTOM_ID: openingmethod
-:END:
-#+begin_src rust
-pub enum OpeningMethod {
-    Background,
-    Foreground,
-}
-#+end_src
-
-*** Browser
-:PROPERTIES:
-:CUSTOM_ID: browser
-:END:
-#+begin_src rust
-pub enum Browser {
-    Default,
-    Safari,
-    Firefox,
-    Brave,
-    Chrome,
-    Opera,
-    Edge,
-}
-#+end_src
-
-*** Theme
-:PROPERTIES:
-:CUSTOM_ID: theme
-:END:
-#+begin_src rust
-pub enum Theme {
-    System,
-    Light,
-    Dark,
-}
-#+end_src
-
-*** TextSize
-:PROPERTIES:
-:CUSTOM_ID: textsize
-:END:
-#+begin_src rust
-pub enum TextSize {
-    Small,
-    Medium,
-    Large,
-    XLarge,
-    XXLarge,
-}
-#+end_src
-
 *** FeedStore
 :PROPERTIES:
 :CUSTOM_ID: feedstore
 :END:
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum FeedStore {
+    #[default]
     Root,
     Folder,
 }
@@ -360,8 +354,10 @@ pub enum FeedStore {
 :CUSTOM_ID: feedview
 :END:
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum FeedView {
     Today,
+    #[default]
     Unread,
     Starred,
     Folder,
@@ -374,8 +370,10 @@ pub enum FeedView {
 :CUSTOM_ID: readstatus
 :END:
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum ReadStatus {
     Read,
+    #[default]
     Unread,
 }
 #+end_src
@@ -385,8 +383,10 @@ pub enum ReadStatus {
 :CUSTOM_ID: starstatus
 :END:
 #+begin_src rust
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum StarStatus {
     Starred,
+    #[default]
     Unstarred,
 }
 #+end_src
