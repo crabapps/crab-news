@@ -10,17 +10,18 @@ sketchpad for this project. notes, they come and go.
 :END:
 - to help wrap my head around it
 
-| Elm          | Crux                          | Notes                                                                             |
-|--------------+-------------------------------+-----------------------------------------------------------------------------------|
-| Model        | Model                         |                                                                                   |
-| a) View      | ViewModel                     | the ViewModel contains data relevant to what the user currently sees              |
-| b) View      | fn view in App                | the view() function populates ViewModel's data                                    |
-| c) View      | no Model -> Html Msg here     | the Shells will use the data from ViewModel                                       |
-| Update       | fn update in App              | (&self, msg: Self::Event, model: &mut Self::Model, caps: &Self::Capabilities)     |
-| Msg          | Events                        | can Events accept 'parameters' ?                                                  |
-| (Model, Msg) | fn update implicit return of? | self.update(Event::Update(count), model, caps);                                   |
-| main         | crux_core::App entry point    | is an implementation of the App trait, exposed via the Core or Bridge             |
-| init         | no explicit init              | app is not autonomous - it never does things on its own, only when directly asked |
+| Elm          | Crux                          | Notes                                                                         |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
+| Model        | Model                         | The Model holds the state of a Crux app                                       |
+| a) View      | ViewModel                     | the ViewModel contains data relevant to what the user currently sees          |
+| b) View      | fn view in App                | the view() function populates ViewModel's data                                |
+| c) View      | no Model -> Html Msg here     | the Shells will use the data from ViewModel                                   |
+| Update       | fn update in App              | (&self, msg: Self::Event, model: &mut Self::Model, caps: &Self::Capabilities) |
+| Msg          | Events                        | can Events accept 'parameters' ?                                              |
+| (Model, Msg) | fn update implicit return of? | self.update(Event::Update(count), model, caps);                               |
+| main         | crux_core::App entry point    | is an implementation of the App trait, exposed via the Core or Bridge         |
+| a) init      | #[derive(Default)]            | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Dewault for any custom Types |
+| b) init      | no explicit Cmd               | no request effects during init. You can always add Event::Init if  needed     |
 
 -----
 
@@ -38,15 +39,6 @@ sketchpad for this project. notes, they come and go.
 :PROPERTIES:
 :CUSTOM_ID: model
 :END:
-1. Model is required to implement Default and, instead of deriving it,
-   you can implement your own to get an initial state. This doesn't let
-   you request effects during initialisation, but this is by design. You
-   can always add Event::Init if that's needed
-2. The Model holds the state of a Crux app.
-3. The Shell initiates (runs) the Model
-4. The Shell cannot access the Model directly
-5. The Shell sends and receives its data via data oriented messages
-
 #+begin_src rust
 #[derive(Default, Serialize)]
 pub struct Model {
@@ -68,9 +60,6 @@ pub struct Model {
 :PROPERTIES:
 :CUSTOM_ID: viewmodel
 :END:
-1. ViewModel is normally a data structure derived from Model which contains data
-   relevant to what the user currently sees, laid out such that it's easy to
-   present using a UI toolkit.
 #+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
