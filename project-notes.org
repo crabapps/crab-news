@@ -21,7 +21,7 @@ sketchpad for this project. notes, they come and go.
 | (Model, Msg) | fn update implicit return of? | self.update(Event::Update(count), model, caps);                               |
 | main         | crux_core::App entry point    | is an implementation of the App trait, exposed via the Core or Bridge         |
 | a) init      | ​#[derive(Default)]           | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Dewault for any custom Types |
-| b) init      | no explicit Cmd               | no request effects during init. You can always add Event::Init if needed      |
+| b) init      | no Cmd Msg - like sandbox     | no request effects during init. You can always add Event::Init if needed      |
 
 --------------
 
@@ -49,8 +49,7 @@ cached things. Everything that needs to live for longer than single run of
 pub struct Model {
     theme: Theme,
     text_size: TextSize,
-    accounts: Vec<Account>, // this should use the variant
-    subscriptions: Vec<Subscription>,
+    accounts: Vec<Account>,
     refresh_interval: RefreshInterval,
     open_method: OpeningMethod,
     use_browser: Browser,
@@ -68,12 +67,42 @@ pub struct Model {
 :PROPERTIES:
 :CUSTOM_ID: viewmodel
 :END:
-the ViewModel is a straight "projection" of the Model -- it's calculated from it
-  (with the view function)
+the ViewModel is a straight "projection" of the Model -- it's calculated
+from it (with the view function)
 
 #+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
+    // settings UI
+    pub theme: Theme,
+    pub text_size: TextSize,
+    pub use_browser: Browser,
+    pub open_method: OpeningMethod,
+    pub refresh_interval: RefreshInterval,
+    pub accounts: Vec<Account>,
+
+    // subscribe modal
+    pub url: URL,
+    pub name: String,
+    pub folder: FeedStore,
+
+    // delete feed/folder <T> modal
+    pub logo: Image,
+    pub title: String,
+    pub name: String,
+    pub action: ,
+
+    // mrin UI
+    pub account_name: String, // extrapolated from account
+    pub subscriptions: Vec<Subscription>, // extrapolated from account
+    pub feeds: Vec<Feed>,
+    pub feed_store: FeedStore,
+    pub feed_view: FeedView,
+    pub entries: Vec<Entry>,
+    pub entry_read: ReadStatus,
+    pub entry_star: StarStatus,
+    pub content: Option<Content>,
+}
 }
 #+end_src
 
@@ -119,26 +148,46 @@ pub enum TextSize {
 - Likely needing to code my own Capability for this one?
 - Probably best left for a future version?
 
+#+begin_quote
+I don't think you need a crate here nor create a Capability. You can
+implement all inside the crux app and probably the only use crux_http
+and crux_kv (key value store) capabilities. You will use crux_http
+to communicate to the account clouds and probably the crux_kv to store
+the tokens locally. There are already examples on how to implement the
+crux_http on Android, iOS and the Web, but, I don't remember seeing
+any of the crux_kv shell implementations.
+#+end_quote
+
 #+begin_src rust
-#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Account {
-    type: AccountType, // also unique ID
-    subscriptions: Vec<Subscription>, // does it belong here instead?
+    type: AccountType,
+    subs: Vec<Subscription>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum AccountType {
-    // the variant is for the Model
-    // the string is for ViewModel -> Shells -> UI account name display (and database?)
-    // how do I check for variants Auth state in one go? impl? Capabilities?
     #[default]
-    Local(None) = "Local",
-    Apple(Option<Token>) = "iCloud",
-    Google(Option<Token>) = "Google",
-    Microsoft(Option<Token>) = "Nicrosoft",
-    Canonical(Option<Token>) = "Ubuntu One",
-    Dropbox(Option<Token>) = "Dropbox",
-    // possibly more
+    Local = "Local",
+    Native(AccountNative),
+    Cloud(AccountCloud),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum AccountNative {
+   // how do I check for Auth? impl? Capabilities?
+    Apple { name: String, auth: bool },
+    Google { name: String, auth: bool },
+    Microsoft { name: String, auth: bool },
+    Canonical { name: String, auth: bool },
+    // more?
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum AccountCloud {
+   // how do I check for Auth? impl? Capabilities?
+    Dropbox = "Dropbox",
+    // more
 }
 #+end_src
 
@@ -238,13 +287,13 @@ pub struct Outline {
 #+begin_src rust
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum RefreshInterval {
-    MinFifteen = {name: "15 minutes", time: 15},
+    MinFifteen {name: "15 minutes", time: 15},
     #[default]
-    MinThirthy = {name: "30 minutes", time: 30},
-    HoursOne = {name: "1 hour", time: 60},
-    HoursTwo = {name: "2 hours", time: 120},
-    HoursFour = {name: "4 hours", time: 240},
-    HoursEight = {name: "8 hours", time: 480},
+    MinThirthy {name: "30 minutes", time: 30},
+    HoursOne {name: "1 hour", time: 60},
+    HoursTwo {name: "2 hours", time: 120},
+    HoursFour {name: "4 hours", time: 240},
+    HoursEight {name: "8 hours", time: 480},
 }
 #+end_src
 
@@ -344,8 +393,8 @@ pub struct Content {
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum FeedStore {
     #[default]
-    Root,
-    Folder,
+    Root(Path),
+    Folder(Path),
 }
 #+end_src
 
