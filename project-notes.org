@@ -15,16 +15,23 @@ To help wrap my head around it, hereby collected their similarities and differen
 | Elm          | Crux                          | Notes                                                                         |
 |--------------+-------------------------------+-------------------------------------------------------------------------------|
 | Model        | Model                         | the Model holds all the possible states the app can be in                     |
-| a) View      | ViewModel                     | the ViewModel contains data relevant to the currently displayed UI/voew       |
-| b) View      | fn view in App                | the view() function populates ViewModel's data fron the Modul                 |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
+| a) View      | ViewModel                     | the ViewModel contains data relevant to the currently displayed UI/view       |
+| b) View      | fn view in App                | the view() function populates ViewModel's data fron the Model                 |
 | c) View      | "Cmd Msg" in Capabilities     | the Shells will send/receive the data to/from ViewModel via Capabilities      |
 | d) View      | no Model -> Html Msg here     | unlike Elm, Crux doesn't render a View but sends data to Shells (see "c")     |
-| Update       | fn update in App              | (&self, msg: Self::Event, model: &mut Self::Model, caps: &Self::Capabilities) |
-| Msg          | Events (accepts params?)      | an Event is all the possible things the user can do                           |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
+| a) Update    | fn update in App              | takes Model, Events, Capabilities                                             |
+| b) Update    | fn update in App              | invokes Events - that may callback more Events - to change (Model) state      |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
+| Msg          | Events                        | an Event is all the possible things the user can do                           |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
 | (Model, Msg) | fn update implicit return of? | self.update(Event::Update(count), model, caps);                               |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
 | main         | crux_core::App entry point    | is an implementation of the App trait, exposed via the Core or Bridge         |
-| a) init      | ​#[derive(Default)]           | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Dewault for any custom Types |
-| b) init      | no Cmd Msg - like sandbox     | no request effects during init. You can always add Event::Init if needed      |
+|--------------+-------------------------------+-------------------------------------------------------------------------------|
+| a) init      | ​#[derive(Default)]           | set Model initial state with [[https://doc.rust-lang.org/std/default/trait.Default.html][Default]] Trait; impl Default for any custom Types |
+| b) init      | works like Elm's sandbox      | no request effects during init. You can always add Event::Init if needed      |
 
 - https://redbadger.github.io/crux/guide/capabilities.html
 
