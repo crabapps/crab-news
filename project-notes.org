@@ -4,6 +4,8 @@
 :END:
 sketchpad for this project. notes, they come and go.
 
+- [[https://doc.rust-lang.org/std/collections/index.html][When Should You Use Which Collection?]]
+
 ** Elm vs Crux
 :PROPERTIES:
 :CUSTOM_ID: elm-vs-crux
@@ -168,7 +170,7 @@ pub struct ViewModel {
 :PROPERTIES:
 :CUSTOM_ID: types
 :END:
-- improve data types
+- improve data structures
 *** Preferences
 :PROPERTIES:
 :CUSTOM_ID: preferences
@@ -194,12 +196,11 @@ pub enum Theme {
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum TextSize {
-    Small,
+    Small { desc: String, size: u8 },
     #[default]
-    Medium,
-    Large,
-    XLarge,
-    XXLarge,
+    Medium { desc: String, size: u8 },
+    Large { desc: String, size: u8 },
+    ExtraLarge { desc: String, size: u8 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
@@ -223,13 +224,13 @@ pub enum OpeningMethod {
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum RefreshInterval {
-    MinFifteen { desc: "15 minutes", time: 15 },
+    MinFifteen { desc: String, size: u8 },
     #[default]
-    MinThirthy { desc: "30 minutes", time: 30 },
-    HoursOne { desc: "1 hour", time: 60} ,
-    HoursTwo { desc: "2 hours", time: 120} ,
-    HoursFour { desc: "4 hours", time: 240} ,
-    HoursEight { desc: "8 hours", time: 480 },
+    MinThirthy { desc: String, size: u8 },
+    HoursOne { desc: String, size: u8 },
+    HoursTwo { desc: String, size: u8 },
+    HoursFour { desc: String, size: u8 },
+    HoursEight { desc: String, size: u8 },
 }
 #+end_src
 
@@ -246,12 +247,12 @@ pub enum RefreshInterval {
 
 #+begin_quote
 I don't think you need a crate here nor create a Capability. You can
-implement all inside the crux app and probably the only use crux_{http}
-and crux_{kv} (key value store) capabilities. You will use crux_{http}
-to communicate to the account clouds and probably the crux_{kv} to store
+implement all inside the crux app and probably the only use crux_http
+and crux_kv (key value store) capabilities. You will use crux_http
+to communicate to the account clouds and probably the crux_kv to store
 the tokens locally. There are already examples on how to implement the
-crux_{http} on Android, iOS and the Web, but, I don't remember seeing
-any of the crux_{kv} shell implementations.
+crux_http on Android, iOS and the Web, but, I don't remember seeing
+any of the crux_kv shell implementations.
 #+end_quote
 
 #+begin_src rust
@@ -276,7 +277,7 @@ pub enum AccountLocal {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AccountNative {
-   // how do I check for Auth? impl? Capabilities?
+    // how do I check for Auth? impl? Capabilities?
     Apple { name: String, auth: bool },
     Google { name: String, auth: bool },
     Microsoft { name: String, auth: bool },
@@ -286,7 +287,7 @@ pub enum AccountNative {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AccountCloud {
-   // how do I check for Auth? impl? Capabilities?
+    // https://rclone.org
     Dropbox = "Dropbox",
     // more
 }
