@@ -6,6 +6,18 @@ sketchpad for this project. notes, they come and go.
 
 - [[https://doc.rust-lang.org/std/collections/index.html][When Should You Use Which Collection?]]
 
+ #+begin_quote
+ To get this out of the way: you should probably just use Vec or HashMap. These
+ two collections cover most use cases for generic data storage and processing.
+ They are exceptionally good at doing what they do. All the other collections
+ in the standard library have specific use cases where they are the optimal
+ choice, but these cases are borderline niche in comparison. Even when Vec and
+ HashMap are technically suboptimal, they’re probably a good enough choice to
+ get started.
+ #+end_quote
+
+- ViewModel and Capabilies expose their data via `pub`; all else don't.
+
 ** Elm vs Crux
 :PROPERTIES:
 :CUSTOM_ID: elm-vs-crux
@@ -65,7 +77,7 @@ pub struct Model {
     ////////////////////////////
     theme: Theme,
     text_size: TextSize,
-    use_browser: Browser,
+    browser: Browser,
     open_method: OpeningMethod,
     refresh_interval: RefreshInterval,
     accounts: Vec<Account>, // contains subscriptions
@@ -181,7 +193,7 @@ pub struct ViewModel {
 pub struct Preferences {
     theme: Theme,
     text_size: TextSize,
-    use_browser: Browser,
+    browser: Browser,
     open_method: OpeningMethod,
     refresh_interval: RefreshInterval,
     accounts: Vec<Account>, // contains subscriptions
