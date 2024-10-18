@@ -16,8 +16,9 @@ sketchpad for this project. notes, they come and go.
  get started.
  #+end_quote
 
-- `pub struct ViewModel {}` and `pub struct Capabilies {}` expose their data via `pub`.
-- All else have `pub struct {}` only.
+- The src_rust{pub struct ViewModel {}} exposes its data via src_rust{pub}. Is this an Adapter?
+- The src_rust{pub struct Capabilies {}} exposes its data via src_rust{pub}. Is this an Adapter?
+- All else have src_rust{pub struct {}} only. Is this a Port?
 
 ** Elm vs Crux
 :PROPERTIES:
@@ -105,8 +106,8 @@ pub struct Model {
     entries_title: String, // folder or feed
     entries: Vec<Entry>,
     entry_title: String,
-    entry_line: String, // whativir fits from content 1st line
-    entry_date: StarStatus, // dd mm yyyy
+    entry_line: String, // whatever fits from content 1st line
+    entry_date: Date, // dd mm yyyy
 
     // right column
     content: Option<Content>,
@@ -123,6 +124,8 @@ pub struct Model {
 :END:
 the ViewModel is a straight "projection" of the Model -- it's calculated
 from it (with the view function)
+
+- This needs some more love and thinking. It's a start though
 
 #+begin_src rust
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -158,7 +161,7 @@ pub struct ViewModel {
     pub entries_title: String, // folder or feed
     pub entries: Vec<Entry>,
     pub entry_title: String,
-    pub entry_line: String, // whativir fits from content 1st line
+    pub entry_line: String, // whatever fits from content 1st line
     pub entry_date: StarStatus, // dd mm yyyy
 
     // right column
@@ -302,7 +305,7 @@ pub enum AccountNative {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AccountCloud {
     // https://rclone.org
-    Dropbox = "Dropbox",
+    Dropbox { name: String, auth: bool },
     // more
 }
 #+end_src
@@ -419,26 +422,43 @@ pub enum StarStatus {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     // EVENTS FROM THE SHELL
-    // ANCHOR: preferences UI
-    // account panel
-    AddAccount,
-    DeleteAccount,
-
-    // general panel
+    // ANCHOR: Preferences UI
+    // General panel
     SetTheme,
     SetTextSize,
     SetBrowser,
     SetOpeningMethod,
     SetRefreshInterval,
-    // ANCHOR_END: preferences UI
+    // Account panel
+    AddAccount,
+    DeleteAccount,
+    // ANCHOR_END: Preferences UI
 
-    // ANCHOR: main UI
+    // ANCHOR: Menu
+    // Shell thingiemageebs better done in UI?
+    // File // mostly system related
+    // Edit // mostly system related
+    // View
+    SortEntriesBy, // newest | oldest
+    GroupByFeed,
+    CleanUpEntries,
+    HideRead // entries | feeds
+    HideUIItem // sidebar | toolbar
+    // Go
+    NextUnreadEntry,
+    ShowToday,
+    ShowAllUnread,
+    ShowStarred,
+    // Article -> SEE Entries
+    // ANCHOR_END: Mmenu
+
+    // ANCHOR: Main UI
     // Subscriptions live in struct Account {}
-    ImportSubscriptions,
-    ExportSubscriptions,
+    ImportSubscriptions, // shows up in Menu -> File
+    ExportSubscriptions, // shows up in Menu -> File
 
     // FeedStore -> root + 1st level folder. no more
-    AddNewFolder,
+    AddNewFolder, // shows up in Menu -> File
     DeleteFolder,
     RenameFolder,
 
@@ -446,21 +466,28 @@ pub enum Event {
     SetFeedView,
 
     // Feeds
-    RefreshFeeds,
-    AddNewFeed, // account | root | folder
+    RefreshFeeds, // shows up in Menu -> File
+    AddNewFeed, // account | root | folder // shows up in Menu -> File
     DeleteFeed,
     RenameFeed,
     MoveFeedToStore, // location -> root | folder
-    SetFeedAsRead,
-    SetFeedAsUnread,
-    SetAllFeedsAsRead,
-    SetAllFeedsAsUnread,
-    SetFeedAsStarred,
-    SetFeedAsUnstarred,
+    CopyFeedURL,
+    CopyFeedHomeURL,
+    OpenFeedHomeURL,
 
     // Entries
-    EntryOpen Browser Method,
-    // ANCHOR_END: main UI
+    MarkEntryAsRead, // shows up in Menu -> Article
+    MarkEntryAsUnread, // shows up in Menu -> Article
+    MarkAllEntriesAsRead, // shows up in Menu -> Article
+    MarkAllEntriesAsUnread, // shows up in Menu -> Article
+    MarkEntryAsStarred, // shows up in Menu -> Article
+    MarkEntryAsUnstarred, // shows up in Menu -> Article
+    OpenEntryInBrowser, // shows up in Menu -> Article
+    CopyEntryURL,
+
+    // Content has no Events associated but system ones
+
+    // ANCHOR_END: Main UI
 
     // EVENTS LOCAL TO THE CORE
     #[serde(skip)]
