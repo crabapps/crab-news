@@ -314,12 +314,14 @@ pub enum AccountCloud {
 :PROPERTIES:
 :CUSTOM_ID: subscriptions
 :END:
+- http://opml.org/spec2.opml
 - import/export fn of OPML file
 - crate: [[https://crates.io/crates/opml]]
 
 #+begin_src rust
+// "OPML" would use a template holdimg OPML, Head, Body and then loop over all Outline(s) data for import/export
+// "Subscriptions to/from Vec<Feed>" loop over Outline(s) -> parse and read/write needed types from/to Vec<Feed>
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
-// this should hold all OPML data for import/export, parse and read/write needed types from/to Feed
 pub struct Subscription {
     pub id: String,
     pub feed_type: FeedType,
@@ -327,6 +329,49 @@ pub struct Subscription {
     pub text: Option<Text>,
     pub description: Option<Text>,
     pub links: Vec<Link>,
+}
+
+pub struct OPML {
+    pub version: String,
+    pub head: Option<Head>,
+    pub body: Body,
+}
+
+pub struct Head {
+    pub title: Option<String>,
+    pub date_created: Option<String>,
+    pub date_modified: Option<String>,
+    pub owner_name: Option<String>,
+    pub owner_email: Option<String>,
+    pub owner_id: Option<String>,
+    pub docs: Option<String>,
+    pub expansion_state: Option<String>,
+    pub vert_scroll_state: Option<i32>,
+    pub window_top: Option<i32>,
+    pub window_left: Option<i32>,
+    pub window_bottom: Option<i32>,
+    pub window_right: Option<i32>,
+}
+
+pub struct Body {
+    pub outlines: Vec<Outline>,
+}
+
+pub struct Outline {
+    pub text: String,
+    pub type: Option<String>,
+    pub is_comment: Option<bool>,
+    pub is_breakpoint: Option<bool>,
+    pub created: Option<String>,
+    pub category: Option<String>,
+    pub outlines: Vec<Outline>,
+    pub xml_url: Option<String>,
+    pub description: Option<String>,
+    pub html_url: Option<String>,
+    pub language: Option<String>,
+    pub title: Option<String>,
+    pub version: Option<String>,
+    pub url: Option<String>,
 }
 #+end_src
 
@@ -350,6 +395,9 @@ pub struct Subscription {
 :CUSTOM_ID: feeds
 :END:
 - crate: [[https://crates.io/crates/feed-rs]]
+- https://datatracker.ietf.org/doc/html/rfc4287
+- https://validator.w3.org/feed/docs/atom.html
+- https://www.rssboard.org/rss-specification
 
 *** FeedStore
 :PROPERTIES:
