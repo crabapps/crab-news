@@ -234,13 +234,13 @@ pub enum OpeningMethod {
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
 pub enum RefreshInterval {
-    MinFifteen { desc: String, size: u8 },
+    MinFifteen { desc: String, time: u8 },
     #[default]
-    MinThirthy { desc: String, size: u8 },
-    HoursOne { desc: String, size: u8 },
-    HoursTwo { desc: String, size: u8 },
-    HoursFour { desc: String, size: u8 },
-    HoursEight { desc: String, size: u8 },
+    MinThirthy { desc: String, time: u8 },
+    HoursOne { desc: String, time: u8 },
+    HoursTwo { desc: String, time: u8 },
+    HoursFour { desc: String, time: u8 },
+    HoursEight { desc: String, time: u8 },
 }
 #+end_src
 
@@ -477,10 +477,10 @@ pub enum Event {
     HideRead // entries | feeds
     HideUIItem // sidebar | toolbar
     // Go
-    NextUnreadEntry,
-    ShowToday,
-    ShowAllUnread,
-    ShowStarred,
+    DisplayNextUnreadEntry,
+    DisplayToday,
+    DisplayAllUnread,
+    DisplayStarred,
     // Article -> SEE Entries
     // ANCHOR_END: Mmenu
 
@@ -502,7 +502,7 @@ pub enum Event {
     AddNewFeed, // account | root | folder // shows up in Menu -> File
     DeleteFeed,
     RenameFeed,
-    MoveFeedToStore, // location -> root | folder
+    MoveFeedToFolder, // location -> root | folder
     CopyFeedURL,
     CopyFeedHomeURL,
     OpenFeedHomeURL,
