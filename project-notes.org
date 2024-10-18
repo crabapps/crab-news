@@ -16,7 +16,8 @@ sketchpad for this project. notes, they come and go.
  get started.
  #+end_quote
 
-- ViewModel and Capabilies expose their data via `pub`; all else don't.
+- `pub struct ViewModel {}` and `pub struct Capabilies {}` expose their data via `pub`.
+- All else have `pub struct {}` only.
 
 ** Elm vs Crux
 :PROPERTIES:
@@ -93,7 +94,7 @@ pub struct Model {
     feed_url: String,
 
     // left column
-    feed_view: FeedView, // Smart View = today | all unread | starred
+    feed_view: FeedView, // Smart View = today | all unread | starred | folder | feed
     // for any account,
     account_name: String, // extrapolated from account
     feed_store: FeedStore, // root or folder
@@ -417,29 +418,52 @@ pub enum StarStatus {
 #+begin_src rust
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
-    // events from the shell
-    SubsImport,
-    SubsExport,
-    SubsRefresh,
-    SetSubsRefreshRate,
-    DirAdd Account,
-    DirDel Account,
-    DirRename Account,
-    FeedStore,
-    FeedAdd,
-    FeedDel,
-    FeedMove,
-    FeedRename,
-    FeedRead,
-    FeedUnread,
-    FeedStar,
-    FeedUnstar,
-    EntryOpen Browser Method,
-    ...
+    // EVENTS FROM THE SHELL
+    // ANCHOR: preferences UI
+    // account panel
+    AddAccount,
+    DeleteAccount,
 
-    // events local to the core
+    // general panel
+    SetTheme,
+    SetTextSize,
+    SetBrowser,
+    SetOpeningMethod,
+    SetRefreshInterval,
+    // ANCHOR_END: preferences UI
+
+    // ANCHOR: main UI
+    // Subscriptions live in struct Account {}
+    ImportSubscriptions,
+    ExportSubscriptions,
+
+    // FeedStore -> root + 1st level folder. no more
+    AddNewFolder,
+    DeleteFolder,
+    RenameFolder,
+
+    // FeedView -> today | all unread | starred | folder | feed
+    SetFeedView,
+
+    // Feeds
+    RefreshFeeds,
+    AddNewFeed, // account | root | folder
+    DeleteFeed,
+    RenameFeed,
+    MoveFeedToStore, // location -> root | folder
+    SetFeedAsRead,
+    SetFeedAsUnread,
+    SetAllFeedsAsRead,
+    SetAllFeedsAsUnread,
+    SetFeedAsStarred,
+    SetFeedAsUnstarred,
+
+    // Entries
+    EntryOpen Browser Method,
+    // ANCHOR_END: main UI
+
+    // EVENTS LOCAL TO THE CORE
     #[serde(skip)]
     Fetch(crux_http::Result<crux_http::Response<Feed>, Box<dyn Error>>),
-    ...
 }
 #+end_src
