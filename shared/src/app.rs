@@ -1,27 +1,32 @@
 use crux_core::{render::Render, App};
-use opml::*;
+use crux_http::Http;
+use feed_rs::{model::Feed, parser};
+use opml::{Outline, OPML};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
+// use url::Url;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Event {
-    Increment,
-    Decrement,
-    Reset,
-    ImportOPML, // shows up in Menu -> File
-    ExportOPML, // shows up in Menu -> File
+    ImportSubscriptions, // shows up in Menu -> File
+    ExportSubscriptions, // shows up in Menu -> File
+    AddNewFeed,          // account | root | folder // shows up in Menu -> File
+    DeleteFeed,
+    RenameFeed,
+
+    // EVENTS LOCAL TO THE CORE
+    #[serde(skip)]
+    Fetch(crux_http::Result<crux_http::Response<Feed>>),
 }
 
 #[derive(Default)]
 pub struct Model {
-    count: isize,
-    opml: OPML, // to deal with file.opml import/export
+    subs: Vec<OPML>,
+    feeds: Vec<Feed>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct ViewModel {
-    pub count: String,
-}
+pub struct ViewModel {}
 
 #[cfg_attr(feature = "typegen", derive(crux_core::macros::Export))]
 #[derive(crux_core::macros::Effect)]
@@ -30,9 +35,9 @@ pub struct Capabilities {
 }
 
 #[derive(Default)]
-pub struct Counter;
+pub struct CrabNews;
 
-impl App for Counter {
+impl App for CrabNews {
     type Event = Event;
     type Model = Model;
     type ViewModel = ViewModel;
@@ -40,20 +45,15 @@ impl App for Counter {
 
     fn update(&self, event: Self::Event, model: &mut Self::Model, caps: &Self::Capabilities) {
         match event {
-            Event::Increment => model.count += 1,
-            Event::Decrement => model.count -= 1,
-            Event::Reset => model.count = 0,
-            Event::ImportOPML => model.count = 0,
-            Event::ExportOPML => model.count = 0,
+            Event::ImportSubscriptions => model.count = 0,
+            Event::ExportSubscriptions => model.count = 0,
         };
 
         caps.render.render();
     }
 
     fn view(&self, model: &Self::Model) -> Self::ViewModel {
-        ViewModel {
-            count: format!("Count is: {}", model.count),
-        }
+        ViewModel {}
     }
 }
 
@@ -74,11 +74,30 @@ mod test {
     }
 
     #[test]
-    fn import_opml() {
+    // FIXME rather import opml directly into Vec<OPML> with all the right FeedStore locations folders
+    fn import_subscriptions() {
         let mut file = File::open("example.opml").unwrap();
         let document = OPML::from_reader(&mut file).unwrap();
         let example_xml = r#"<?xml version="1.0" encoding="ISO-8859-1"?><opml version="2.0"><head><title>Subscriptions.opml</title><dateCreated>Sat, 18 Jun 2005 12:11:52 GMT</dateCreated><ownerName>Crab News</ownerName></head><body><outline text="Gentle Wash Records" title="Gentle Wash Records" description="" type="rss" version="RSS" htmlUrl="https://gentlewashrecords.com/" xmlUrl="https://gentlewashrecords.com/atom.xml"/></body></opml>"#;
         let xml = OPML::from_str(example_xml).unwrap();
         assert_eq!(xml, document);
+    }
+
+    #[test]
+    fn export_subscriptions() {}
+
+    #[test]
+    fn add_new_feed() {
+        let mut subs = OPML::default();
+        subs.add_feed("Gentle Wash Records", "https://gentlewashrecords.com/");
+        let added_feed = subs.body.outlines.first().unwrap();
+
+        let expected_feed = &Outline {
+            text: "Gentle Wash Records".to_string(),
+            xml_url: Some("https://gentlewashrecords.com/".to_string()),
+            ..Outline::default()
+        };
+
+        assert_eq!(added_feed, expected_feed);
     }
 }

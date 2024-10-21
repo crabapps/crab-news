@@ -314,21 +314,13 @@ pub enum AccountCloud {
 - crate: [[https://crates.io/crates/opml]]
 - [[http://opml.org/spec2.opml]]
 - http://outlinerhowto.opml.org
-- import/export fn of OPML file
 
-#+begin_src rust
-// "OPML" would use a template holdimg OPML, Head, Body and then loop over all Outline(s) data for import/export
-// "Subscriptions to/from Vec<Feed>" loop over Outline(s) -> parse and read/write needed types from/to Vec<Feed>
-#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
-pub struct Subscription {
-    pub id: String,
-    pub feed_type: FeedType,
-    pub title: Option<Text>,
-    pub text: Option<Text>,
-    pub description: Option<Text>,
-    pub links: Vec<Link>,
-}
-#+end_src
+OPML crate to deal with subs for:
+- import/export from/to file.opml (to_string/from_reader)
+  - would use a template holdimg OPML, Head, Body and then loop over all Outline(s)?
+- create suds with https://docs.rs/opml/1.1.6/opml/struct.Outline.html#method.add_feed
+  - here we deal with FeedStore?
+  - where to "hold" the feed?
 
 #+begin_src xml
 <!-- Example OPML -->
@@ -354,12 +346,8 @@ pub struct Subscription {
 - [[https://validator.w3.org/feed/docs/atom.html]]
 - [[https://www.rssboard.org/rss-specification]]
 
-#+begin_src rust
-// what do I want in Feed?
-#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
-pub struct Subscription {
-}
-#+end_src
+This crate is to deal with feeds data *after* subscribtions. The main UI would
+deal with all data using this crate.
 
 *** Related to Feeds
 :PROPERTIES:
@@ -440,8 +428,8 @@ pub enum Event {
 
     // ANCHOR: Main UI
     // Subscriptions live in struct Account {}
-    ImportOPML, // shows up in Menu -> File
-    ExportOPML, // shows up in Menu -> File
+    ImportSubscriptions, // shows up in Menu -> File
+    ExportSubscriptions, // shows up in Menu -> File
 
     // FeedStore -> root + 1st level folder. no more
     AddNewFolder, // shows up in Menu -> File
