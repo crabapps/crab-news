@@ -10,16 +10,11 @@ use serde::{Deserialize, Serialize};
 pub enum Event {
     ImportSubscriptions,
     ExportSubscriptions,
-    // Feeds
-    // TO ADD AN OUTLINE TO ROOT USE https://docs.rs/opml/1.1.6/opml/struct.OPML.html#method.add_feed
-    // TO ADD AN OUTLINE TO FOLDER USE https://docs.rs/opml/1.1.6/opml/struct.Outline.html#method.add_feed
-    AddNewFeed, // account | root | folder // shows up in Menu -> File
-    DeleteFeed,
-    RenameFeed,
-    MoveFeedToFolder, // location -> root | folder
-    // FeedStore -> root + 1st level folder. no more
-    // THIS ADDS AN OUTLINE TO OPML::Body
-    AddNewFolder, // shows up in Menu -> File
+    AddNewSubscription, // root | folder // shows up in Menu -> File
+    DeleteSubscription,
+    RenameSubscription,
+    MoveSubscriptionToFolder, // location -> root | folder
+    AddNewFolder,             // shows up in Menu -> File
     DeleteFolder,
     RenameFolder,
 
@@ -56,10 +51,10 @@ impl App for CrabNews {
         match event {
             Event::ImportSubscriptions => todo!(),
             Event::ExportSubscriptions => todo!(),
-            Event::AddNewFeed => todo!(),
-            Event::DeleteFeed => todo!(),
-            Event::RenameFeed => todo!(),
-            Event::MoveFeedToFolder => todo!(),
+            Event::AddNewSubscription => todo!(),
+            Event::DeleteSubscription => todo!(),
+            Event::RenameSubscription => todo!(),
+            Event::MoveSubscriptionToFolder => todo!(),
             Event::Fetch(_) => todo!(),
             Event::AddNewFolder => todo!(),
             Event::DeleteFolder => todo!(),
@@ -85,6 +80,7 @@ mod test {
     // TODO Events::ImportSubscriptions,
     #[test]
     fn import_subscriptions() {
+        // let app = AppTester::<CrabNews, _>::default();
         let model: Model = Model::default();
         let mut subscriptions: Vec<OPML> = model.subscriptions;
         let mut file = std::fs::File::open("example_import.opml").unwrap();
@@ -122,9 +118,32 @@ mod test {
         assert_eq!(export_content, import_content);
     }
 
-    // TODO use Events::AddNewFeed(FeedStore::Root)
+    // TODO use Events::AddNewFolder
+    // THIS ADDS AN OUTLINE TO OPML::Body
     #[test]
-    fn add_new_feed_to_root() {
+    fn add_new_folder() {
+        let mut model: Model = Model::default();
+        let new_sub: OPML = OPML::default();
+        model.subscriptions.push(new_sub);
+        let mut body: opml::Body = model.subscriptions.first().unwrap().body.clone();
+        let new_folder = &Outline {
+            text: "Folder Name".to_string(),
+            title: Some("Folder Name".to_string()),
+            ..Outline::default()
+        };
+
+        body.outlines.push(new_folder.clone());
+
+        let added_folder = body.outlines.first().unwrap();
+        let expected_folder = new_folder;
+
+        assert_eq!(added_folder, expected_folder);
+    }
+
+    // TODO use Events::AddNewSubscription(FeedStore::Root)
+    // https://docs.rs/opml/1.1.6/opml/struct.OPML.html#method.add_feed
+    #[test]
+    fn add_new_subscription_to_root() {
         let model: Model = Model::default();
         let mut subscriptions: Vec<OPML> = model.subscriptions;
         let mut new_sub: OPML = OPML::default();
@@ -149,9 +168,10 @@ mod test {
         assert_eq!(added_feed, expected_feed);
     }
 
-    // TODO use Events::AddNewFeed(FeedStore::Folder)
+    // TODO use Events::AddNewSubscription(FeedStore::Folder)
+    // https://docs.rs/opml/1.1.6/opml/struct.Outline.html#method.add_feed
     #[test]
-    fn add_new_feed_to_folder() {
+    fn add_new_subscription_to_folder() {
         let mut model = Model::default();
         let new_sub = OPML::default();
         let new_folder = Outline {
@@ -176,24 +196,19 @@ mod test {
         assert_eq!(added_feed, expected_feed);
     }
 
-    // TODO use Events::AddNewFolder
+    // TODO use Events::DeleteFolder
     #[test]
-    fn add_new_folder() {
-        let mut model: Model = Model::default();
-        let new_sub: OPML = OPML::default();
-        model.subscriptions.push(new_sub);
-        let mut body: opml::Body = model.subscriptions.first().unwrap().body.clone();
-        let new_folder = &Outline {
-            text: "Folder Name".to_string(),
-            title: Some("Folder Name".to_string()),
-            ..Outline::default()
-        };
+    fn delete_folder() {}
 
-        body.outlines.push(new_folder.clone());
+    // TODO use Events::DeleteSubscription
+    #[test]
+    fn delete_subscription() {}
 
-        let added_folder = body.outlines.first().unwrap();
-        let expected_folder = new_folder;
+    // TODO use Events::RenameFolder
+    #[test]
+    fn rename_folder() {}
 
-        assert_eq!(added_folder, expected_folder);
-    }
+    // TODO use Events::RenameSubscription
+    #[test]
+    fn rename_subscription() {}
 }
